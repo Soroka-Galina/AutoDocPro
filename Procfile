@@ -1,0 +1,1 @@
+web: gunicorn autodocpro.wsgi --log-file -
