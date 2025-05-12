@@ -1,0 +1,110 @@
+<!-- templates/documents/motion_form.html -->
+{% extends "documents/template_detail.html" %}
+
+{% block extra_fields %}
+<div class="ai-section mb-4">
+    <h5><i class="bi bi-robot"></i> AI Оптимизация ходатайства</h5>
+    <button class="btn btn-sm btn-outline-primary" id="optimizeMotionBtn">
+        Оптимизировать текст
+    </button>
+    <div id="aiOptimizationResult" class="mt-2"></div>
+</div>
+
+<div class="ai-section mb-4">
+    <h5><i class="bi bi-lightbulb"></i> AI Помощник</h5>
+    <select class="form-select form-select-sm" id="motionHelpType">
+        <option value="evidence">Помощь по истребованию доказательств</option>
+        <option value="expertise">Помощь по назначению экспертизы</option>
+        <option value="postpone">Помощь по переносу заседания</option>
+        <option value="attach">Помощь по приобщению документов</option>
+    </select>
+    <button class="btn btn-sm btn-outline-secondary mt-2" id="getMotionHelpBtn">
+        Получить рекомендации
+    </button>
+    <div id="aiHelpResult" class="mt-2"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+document.getElementById('optimizeMotionBtn').addEventListener('click', async () => {
+    const formData = collectMotionFormData();
+    try {
+        const response = await fetch('/api/ai/optimize_motion/', {
+            method: 'POST',
+            body: JSON.stringify(formData),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        
+        if (!response.ok) throw new Error('Ошибка сервера');
+        
+        const result = await response.json();
+        document.getElementById('aiOptimizationResult').innerHTML = `
+            <div class="alert alert-success">
+                <h6>Оптимизированный текст:</h6>
+                <div class="optimized-text">${result.optimized_text}</div>
+                <button class="btn btn-sm btn-primary mt-2 apply-optimization">Применить изменения</button>
+            </div>
+        `;
+        
+        document.querySelector('.apply-optimization').addEventListener('click', () => {
+            applyOptimizedMotionText(result.optimized_text);
+        });
+    } catch (error) {
+        document.getElementById('aiOptimizationResult').innerHTML = `
+            <div class="alert alert-danger">Ошибка при оптимизации: ${error.message}</div>
+        `;
+    }
+});
+
+document.getElementById('getMotionHelpBtn').addEventListener('click', async () => {
+    const helpType = document.getElementById('motionHelpType').value;
+    const formData = collectMotionFormData();
+    
+    try {
+        const response = await fetch(`/api/ai/motion_help/${helpType}/`, {
+            method: 'POST',
+            body: JSON.stringify(formData),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        
+        if (!response.ok) throw new Error('Ошибка сервера');
+        
+        const result = await response.json();
+        document.getElementById('aiHelpResult').innerHTML = `
+            <div class="alert alert-info">
+                <h6>Рекомендации:</h6>
+                <div class="help-text">${result.help_text}</div>
+                <div class="examples mt-2">
+                    <h6>Примеры:</h6>
+                    ${result.examples.map(e => `<p>- ${e}</p>`).join('')}
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        document.getElementById('aiHelpResult').innerHTML = `
+            <div class="alert alert-danger">Ошибка при получении помощи: ${error.message}</div>
+        `;
+    }
+});
+
+function collectMotionFormData() {
+    return {
+        motion_text: document.querySelector('.motion-text').innerText,
+        motion_type: document.querySelector('.motion-title h4').innerText,
+        // Другие поля формы
+    };
+}
+
+function applyOptimizedMotionText(text) {
+    document.querySelector('.motion-text').innerHTML = text;
+}
+</script>
+{% endblock %}
