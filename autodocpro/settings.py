@@ -18,8 +18,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+# Обработка ALLOWED_HOSTS и CSRF_TRUSTED_ORIGINS
+allowed_hosts = os.getenv('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts if host.strip()]
+
+csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in csrf_origins 
+    if origin.strip() and (
+        origin.startswith('http://') or 
+        origin.startswith('https://')
+    )
+]
 
 SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True') == 'True'
 CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'True') == 'True'
@@ -80,7 +90,7 @@ WSGI_APPLICATION = 'autodocpro.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',  # Простое расположение в корне проекта
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -189,5 +199,6 @@ if not DEBUG:
     WHITENOISE_MAX_AGE = 31536000
     
     # Установка прав только если файл существует
-    if os.path.exists(BASE_DIR / 'db.sqlite3'):
-        os.chmod(BASE_DIR / 'db.sqlite3', 0o644)
+    db_path = BASE_DIR / 'db.sqlite3'
+    if db_path.exists():
+        db_path.chmod(0o644)
