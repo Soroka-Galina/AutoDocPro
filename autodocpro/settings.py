@@ -15,13 +15,15 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==================== НАСТРОЙКИ БЕЗОПАСНОСТИ ====================
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev-only')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Обработка ALLOWED_HOSTS и CSRF_TRUSTED_ORIGINS
+DEFAULT_ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'web-production-a798.up.railway.app']
 allowed_hosts = os.getenv('ALLOWED_HOSTS', '').split(',')
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts if host.strip()]
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts if host.strip()] or DEFAULT_ALLOWED_HOSTS
 
+DEFAULT_CSRF_TRUSTED_ORIGINS = ['https://web-production-a798.up.railway.app']
 csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 CSRF_TRUSTED_ORIGINS = [
     origin.strip() for origin in csrf_origins 
@@ -29,7 +31,7 @@ CSRF_TRUSTED_ORIGINS = [
         origin.startswith('http://') or 
         origin.startswith('https://')
     )
-]
+] or DEFAULT_CSRF_TRUSTED_ORIGINS
 
 SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True') == 'True'
 CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'True') == 'True'
