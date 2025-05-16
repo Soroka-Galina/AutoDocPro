@@ -85,23 +85,33 @@ TEMPLATES = [
 WSGI_APPLICATION = 'autodocpro.wsgi.application'
 
 # ==================== НАСТРОЙКИ БАЗЫ ДАННЫХ ====================
-DATABASES = {
-    'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+if os.getenv('RAILWAY_ENVIRONMENT'):
+    # Для Railway используем Volume для SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/data/db.sqlite3',  # Путь в Volume
+        }
     }
-}
+else:
+    # Для локальной разработки
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
+        }
+    }
 
-# Fallback на SQLite если нет настроек PostgreSQL
-if not all(DATABASES['default'].values()):
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    # Fallback на SQLite если нет настроек PostgreSQL
+    if not all(DATABASES['default'].values()):
+        DATABASES['default'] = {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
 
 # ==================== ОСНОВНЫЕ НАСТРОЙКИ ====================
 AUTH_PASSWORD_VALIDATORS = [
@@ -195,3 +205,21 @@ LOGGING = {
 
 # Создание папки для логов
 (BASE_DIR / 'logs').mkdir(exist_ok=True)
+
+# ==================== PRODUCTION SETTINGS ====================
+if not DEBUG:
+    # Security
+    SECURE_HSTS_SECONDS = 3600  # 1 hour
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # Whitenoise optimization
+    WHITENOISE_MANIFEST_STRICT = False
+    WHITENOISE_MAX_AGE = 31536000  # 1 year
+    
+    # File permissions for Railway
+    os.chmod(BASE_DIR / 'logs', 0o755)
+    if os.path.exists('/data/db.sqlite3'):
+        os.chmod('/data/db.sqlite3', 0o644)
