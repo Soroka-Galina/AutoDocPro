@@ -77,14 +77,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'autodocpro.wsgi.application'
 
 # ==================== НАСТРОЙКИ БАЗЫ ДАННЫХ ====================
-# Создаем папку /data если ее нет (для Railway)
-DATA_DIR = BASE_DIR / 'data'
-DATA_DIR.mkdir(exist_ok=True)
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': DATA_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',  # Простое расположение в корне проекта
     }
 }
 
@@ -192,6 +188,6 @@ if not DEBUG:
     WHITENOISE_MANIFEST_STRICT = False
     WHITENOISE_MAX_AGE = 31536000
     
-    # File permissions
-    os.chmod(BASE_DIR / 'logs', 0o755)
-    os.chmod(DATA_DIR / 'db.sqlite3', 0o644)
+    # Установка прав только если файл существует
+    if os.path.exists(BASE_DIR / 'db.sqlite3'):
+        os.chmod(BASE_DIR / 'db.sqlite3', 0o644)
