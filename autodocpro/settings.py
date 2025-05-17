@@ -2,21 +2,12 @@ import os
 from pathlib import Path
 import socket
 from datetime import timedelta
-from dotenv import load_dotenv
 
-# ===== Инициализация загрузки переменных окружения =====
+# ===== Инициализация настроек =====
 BASE_DIR = Path(__file__).resolve().parent.parent
-env_path = BASE_DIR / '.env'
 
 print("\n=== Инициализация настроек ===")
-print(f"Путь к .env файлу: {env_path}")
-print(f".env файл существует: {'Да' if env_path.exists() else 'Нет'}")
-
-if env_path.exists():
-    load_dotenv(env_path)
-    print("Переменные из .env файла успешно загружены")
-else:
-    print("Используются системные переменные окружения")
+print("Используются системные переменные окружения")
 
 # ===== Проверка обязательных переменных =====
 def get_required_env(var_name):
@@ -25,7 +16,7 @@ def get_required_env(var_name):
         raise ValueError(f"Необходимо установить переменную окружения: {var_name}")
     return value
 
-DJANGO_SECRET_KEY= get_required_env('DJANGO_SECRET_KEY')
+DJANGO_SECRET_KEY = get_required_env('DJANGO_SECRET_KEY')
 DEEPSEEK_API_KEY = get_required_env('DEEPSEEK_API_KEY')
 
 DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
