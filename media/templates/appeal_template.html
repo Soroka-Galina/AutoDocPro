@@ -1,0 +1,70 @@
+<!-- templates/documents/appeal_template.html -->
+<div class="appeal-wrapper">
+    <!-- Шапка жалобы -->
+    <div class="appeal-header">
+        <div class="single-part" data-parent="100" data-child="101">
+            <p>В <span class="ch-field">название апелляционного суда<span class="same-field">appeal_court_name</span></span></p>
+            <p>От: <span class="ch-field">ФИО полностью<span class="same-field">appellant_name</span></span></p>
+            <p>Процессуальное положение: 
+                <select class="co-select" data-same="appellant_role">
+                    <option>истец</option>
+                    <option>ответчик</option>
+                    <option>третье лицо</option>
+                </select>
+            </p>
+            <p>Адрес: <span class="ch-field">полный адрес<span class="same-field">appellant_address</span></span></p>
+        </div>
+    </div>
+
+    <!-- Название документа -->
+    <div class="appeal-title">
+        <h3>АПЕЛЛЯЦИОННАЯ ЖАЛОБА</h3>
+        <p>на решение <span class="ch-field">название суда первой инстанции<span class="same-field">first_court_name</span></span></p>
+        <p>от <span class="my-dates">укажите дату</span></p>
+        <p>по делу № <span class="ch-field">номер дела<span class="same-field">case_number</span></span></p>
+    </div>
+
+    <!-- Основной текст жалобы -->
+    <div class="appeal-text">
+        <div class="single-part" data-parent="200" data-child="201">
+            <p><span class="reallnumber">1.</span> <span class="my-dates">укажите дату</span> 
+               <span class="ch-field">название суда<span class="same-field">first_court_name</span></span> вынесено решение по делу № 
+               <span class="ch-field">номер дела<span class="same-field">case_number</span></span>.</p>
+        </div>
+        
+        <!-- Основания для обжалования -->
+        <div class="appeal-grounds">
+            <h4>Основания для отмены решения суда:</h4>
+            
+            <div class="single-part" data-parent="300" data-child="301">
+                <p><span class="reallnumber">1.</span> Судом неправильно определены обстоятельства, имеющие значение для дела (ст. 330 ГПК РФ/ст. 270 АПК РФ).</p>
+                <p>А именно: <span class="ch-field">указать, какие обстоятельства<span class="same-field">wrong_circumstances</span></span>.</p>
+            </div>
+        </div>
+        
+        <!-- Просительная часть -->
+        <div class="appeal-request">
+            <div class="single-part" data-parent="400" data-child="401">
+                <h4>ПРОШУ:</h4>
+                <p><span class="reallnumber">1.</span> Решение <span class="ch-field">название суда<span class="same-field">first_court_name</span></span> от 
+                   <span class="my-dates">укажите дату</span> по делу № 
+                   <span class="ch-field">номер дела<span class="same-field">case_number</span></span> отменить.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Приложения -->
+    <div class="appeal-attachments">
+        <div class="single-part" data-parent="500" data-child="501">
+            <h4>Приложения:</h4>
+            <p><span class="reallnumber">1.</span> Копия апелляционной жалобы;</p>
+            <p><span class="reallnumber">2.</span> Копия обжалуемого решения;</p>
+        </div>
+    </div>
+
+    <!-- Дата и подпись -->
+    <div class="appeal-footer">
+        <p>Дата: <span class="my-dates">укажите дату</span></p>
+        <p>Подпись: ___________________</p>
+    </div>
+</div>
