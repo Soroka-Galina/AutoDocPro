@@ -22,14 +22,11 @@ ALLOWED_HOSTS = [
     '127.0.0.1'
 ]
 
-# Если в переменных окружения указаны дополнительные хосты
-if os.getenv('DJANGO_ALLOWED_HOSTS'):
-    ALLOWED_HOSTS.extend(os.getenv('DJANGO_ALLOWED_HOSTS').split(','))
-
 # Настройки CSRF и прокси
 CSRF_TRUSTED_ORIGINS = [
     'https://web-production-a798.up.railway.app',
     'https://*.railway.app',
+    'http://localhost',
 ]
 
 USE_X_FORWARDED_HOST = True
@@ -46,6 +43,7 @@ INSTALLED_APPS = [
     
     # Сторонние приложения
     'rest_framework',
+    'whitenoise.runserver_nostatic',
     
     # Локальные приложения
     'documents.apps.DocumentsConfig',
@@ -53,7 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Для статических файлов
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -64,19 +62,9 @@ MIDDLEWARE = [
 
 # Настройки Django Debug Toolbar
 if DEBUG:
-    INSTALLED_APPS += [
-        'debug_toolbar',
-    ]
-    
-    MIDDLEWARE += [
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    ]
-    
-    INTERNAL_IPS = [
-        '127.0.0.1',
-    ]
-    
-    # Для Docker/WSL
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    INTERNAL_IPS = ['127.0.0.1']
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
     INTERNAL_IPS += [ip[:-1] + '1' for ip in ips]
 
@@ -100,15 +88,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'autodocpro.wsgi.application'
 
-# База данных
+# База данных SQLite
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', 'railway'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -151,10 +135,10 @@ DEEPSEEK_TIMEOUT = int(os.getenv('DEEPSEEK_TIMEOUT', 30))
 
 # Настройки ИИ
 AI_CONFIG = {
-    'CACHE_TIMEOUT': timedelta(hours=int(os.getenv('AI_CACHE_HOURS', 24))),  # 24 часа по умолчанию
+    'CACHE_TIMEOUT': timedelta(hours=int(os.getenv('AI_CACHE_HOURS', 24))),
     'MAX_TOKENS': int(os.getenv('AI_MAX_TOKENS', 4000)),
     'TEMPERATURE': float(os.getenv('AI_TEMPERATURE', 0.7)),
-    'DOCUMENT_TEMPERATURE': float(os.getenv('AI_DOCUMENT_TEMPERATURE', 0.3)),  # Более строгие настройки для документов
+    'DOCUMENT_TEMPERATURE': float(os.getenv('AI_DOCUMENT_TEMPERATURE', 0.3)),
 }
 
 # Настройки REST Framework
@@ -172,30 +156,19 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'deepseek_api': '5/minute',  # Лимит запросов к API
+        'deepseek_api': '5/minute',
     },
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
 }
 
 # Настройки кэширования
-if os.getenv('REDIS_URL'):
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': os.getenv('REDIS_URL'),
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            }
-        }
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': AI_CONFIG['CACHE_TIMEOUT'],
     }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
-            'TIMEOUT': AI_CONFIG['CACHE_TIMEOUT'],
-        }
-    }
+}
 
 # Настройки логирования
 LOGGING = {
@@ -206,62 +179,25 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
     },
     'handlers': {
         'console': {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose' if DEBUG else 'simple',
-        },
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'django_errors.log',
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-        'deepseek_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'deepseek_api.log',
-            'maxBytes': 1024 * 1024 * 10,  # 10 MB
-            'backupCount': 3,
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
-            'propagate': False,
         },
         'documents': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
-        },
-        'deepseek': {
-            'handlers': ['console', 'deepseek_file'],
-            'level': 'INFO',
-            'propagate': False,
         },
     },
 }
-
-# Отключение системных проверок
-SILENCED_SYSTEM_CHECKS = [
-    "files.W002",
-    "urls.W002",
-]
-
-# Создание папки для логов
-LOG_DIR = BASE_DIR / 'logs'
-LOG_DIR.mkdir(exist_ok=True)
 
 # Настройки безопасности для production
 if not DEBUG:
@@ -271,3 +207,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# Создание папки для логов
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
