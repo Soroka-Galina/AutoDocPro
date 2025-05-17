@@ -104,6 +104,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'autodocpro.wsgi.application'
 
 # ==================== НАСТРОЙКИ БАЗЫ ДАННЫХ ====================
+# Явно указываем использование SQLite без возможности переопределения
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -170,6 +171,7 @@ REST_FRAMEWORK = {
         'deepseek_api': '5/minute',
     },
 }
+
 # Удаляем None из RENDERER_CLASSES
 REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
     r for r in REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] if r is not None
