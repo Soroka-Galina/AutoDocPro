@@ -1,0 +1,57 @@
+<!-- templates/documents/claim_template.html -->
+<div class="lawsuit-wrapper">
+    <!-- Шапка заявления -->
+    <div class="lawsuit-header">
+        <div class="single-part" data-parent="100" data-child="101">
+            <p>В <span class="ch-field">название суда<span class="same-field">court_name</span></span></p>
+            <p>Истец: <span class="ch-field">ФИО полностью<span class="same-field">plaintiff_name</span></span></p>
+            <p>Адрес: <span class="ch-field">полный адрес<span class="same-field">plaintiff_address</span></span></p>
+        </div>
+        
+        <!-- Другие варианты шапки -->
+    </div>
+
+    <!-- Ответчик -->
+    <div class="lawsuit-defendant">
+        <div class="single-part" data-parent="200" data-child="201">
+            <p>Ответчик: <span class="ch-field">ФИО полностью<span class="same-field">defendant_name</span></span></p>
+            <p>Адрес: <span class="ch-field">адрес ответчика<span class="same-field">defendant_address</span></span></p>
+        </div>
+        
+        <!-- Другие варианты ответчика -->
+    </div>
+
+    <!-- Основной текст иска -->
+    <div class="lawsuit-text">
+        <div class="single-part" data-parent="400" data-child="401">
+            <h3>Исковое заявление</h3>
+            <h4>о взыскании задолженности</h4>
+            
+            <!-- Поля для заполнения -->
+        </div>
+        
+        <!-- Другие варианты текста -->
+    </div>
+
+    <!-- Просительная часть -->
+    <div class="lawsuit-request">
+        <div class="single-part" data-parent="500" data-child="501">
+            <h4>Прошу:</h4>
+            <!-- Требования истца -->
+        </div>
+    </div>
+
+    <!-- Приложения -->
+    <div class="lawsuit-attachments">
+        <div class="single-part" data-parent="600" data-child="601">
+            <h4>Приложения:</h4>
+            <!-- Список приложений -->
+        </div>
+    </div>
+
+    <!-- Дата и подпись -->
+    <div class="lawsuit-footer">
+        <p>Дата: <span class="my-dates">укажите дату</span></p>
+        <p>Подпись: ___________________</p>
+    </div>
+</div>

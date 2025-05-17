@@ -1,0 +1,62 @@
+<!-- templates/documents/motion_template.html -->
+<div class="motion-wrapper">
+    <!-- Шапка ходатайства -->
+    <div class="motion-header">
+        <div class="single-part" data-parent="100" data-child="101">
+            <p>В <span class="ch-field">название суда<span class="same-field">court_name</span></span></p>
+            <p>От: <span class="ch-field">ФИО полностью<span class="same-field">applicant_name</span></span></p>
+            <p>Процессуальное положение: <span class="ch-field">истец/ответчик/третье лицо<span class="same-field">procedural_role</span></span></p>
+            <p>по делу № <span class="ch-field">номер дела<span class="same-field">case_number</span></span></p>
+        </div>
+        
+        <!-- Другие варианты шапки -->
+    </div>
+
+    <!-- Название ходатайства -->
+    <div class="motion-title">
+        <h3>ХОДАТАЙСТВО</h3>
+        <div class="single-part" data-parent="200" data-child="201">
+            <h4>об истребовании доказательств</h4>
+        </div>
+        <!-- Другие варианты ходатайств -->
+    </div>
+
+    <!-- Основной текст ходатайства -->
+    <div class="motion-text">
+        <div class="single-part" data-parent="300" data-child="301">
+            <p><span class="reallnumber">1.</span> В производстве суда находится дело № 
+               <span class="ch-field">номер дела<span class="same-field">case_number</span></span> по иску 
+               <span class="ch-field">ФИО истца<span class="same-field">plaintiff_name</span></span> к 
+               <span class="ch-field">ФИО ответчика<span class="same-field">defendant_name</span></span> о 
+               <span class="ch-field">предмет иска<span class="same-field">claim_subject</span></span>.</p>
+            <!-- Остальное содержание -->
+        </div>
+        <!-- Другие варианты текста -->
+    </div>
+
+    <!-- Просительная часть -->
+    <div class="motion-request">
+        <div class="single-part" data-parent="400" data-child="401">
+            <h4>ПРОШУ:</h4>
+            <p><span class="reallnumber">1.</span> Истребовать 
+               <span class="ch-field">перечень документов<span class="same-field">requested_evidence</span></span> 
+               у <span class="ch-field">наименование органа/организации<span class="same-field">evidence_holder</span></span>.</p>
+        </div>
+        <!-- Другие варианты просительной части -->
+    </div>
+
+    <!-- Приложения -->
+    <div class="motion-attachments">
+        <div class="single-part" data-parent="500" data-child="501">
+            <h4>Приложения:</h4>
+            <p><span class="reallnumber">1.</span> Копия ходатайства;</p>
+            <p><span class="reallnumber">2.</span> Документы, подтверждающие изложенные обстоятельства;</p>
+        </div>
+    </div>
+
+    <!-- Дата и подпись -->
+    <div class="motion-footer">
+        <p>Дата: <span class="my-dates">укажите дату</span></p>
+        <p>Подпись: ___________________</p>
+    </div>
+</div>
