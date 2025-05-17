@@ -88,13 +88,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'autodocpro.wsgi.application'
 
-# База данных SQLite
+# База данных SQLite с явным указанием пути
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Создаем файл базы данных, если его нет
+if not os.path.exists(BASE_DIR / 'db.sqlite3'):
+    open(BASE_DIR / 'db.sqlite3', 'w').close()
 
 # Валидация паролей
 AUTH_PASSWORD_VALIDATORS = [
