@@ -3,6 +3,9 @@ from pathlib import Path
 import socket
 from datetime import timedelta
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # ===== Инициализация настроек =====
 BASE_DIR = Path(__file__).resolve().parent.parent
 
