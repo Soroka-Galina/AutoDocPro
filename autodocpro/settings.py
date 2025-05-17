@@ -4,7 +4,7 @@ import socket
 from datetime import timedelta
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('C:/Users/Пользователь/AutoDocPro_DeepSeek_9/autodocpro/.env')
 
 # ===== Инициализация настроек =====
 BASE_DIR = Path(__file__).resolve().parent.parent
