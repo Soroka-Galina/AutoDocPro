@@ -1,10 +1,21 @@
 {
   "build": {
-    "command": "python manage.py collectstatic --noinput && python manage.py migrate",
-    "watchPatterns": ["autodocpro/**", "documents/**"]
+    "command": "python manage.py makemigrations --noinput && python manage.py migrate --noinput && python manage.py collectstatic --noinput",
+    "watchPatterns": ["autodocpro/**", "documents/**", "templates/**"]
   },
   "static": {
     "directory": "staticfiles",
     "url": "/static"
+  },
+  "healthCheckPath": "/health/",
+  "routes": {
+    "/": {
+      "static": false,
+      "path": "autodocpro/wsgi.py"
+    },
+    "/static/": {
+      "static": true,
+      "directory": "staticfiles"
+    }
   }
 }
