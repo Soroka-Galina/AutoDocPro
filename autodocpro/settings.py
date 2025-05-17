@@ -25,7 +25,7 @@ def get_required_env(var_name):
         raise ValueError(f"Необходимо установить переменную окружения: {var_name}")
     return value
 
-SECRET_KEY = get_required_env('DJANGO_SECRET_KEY')
+DJANGO_SECRET_KEY= get_required_env('DJANGO_SECRET_KEY')
 DEEPSEEK_API_KEY = get_required_env('DEEPSEEK_API_KEY')
 
 DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
