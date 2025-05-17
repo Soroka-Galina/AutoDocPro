@@ -1,10 +1,13 @@
 """
 Django settings for autodocpro project.
+
+Production-ready configuration with security best practices.
 """
 
 from pathlib import Path
 import os
 import socket
+import logging
 from datetime import timedelta
 from dotenv import load_dotenv
 
@@ -15,15 +18,27 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==================== НАСТРОЙКИ БЕЗОПАСНОСТИ ====================
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev-only')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY and os.getenv('DEBUG') == 'True':
+    SECRET_KEY = 'django-insecure-dev-key-only'  # Только для разработки
+elif not SECRET_KEY:
+    raise ValueError("SECRET_KEY must be set in production")
+
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Обработка ALLOWED_HOSTS и CSRF_TRUSTED_ORIGINS
-DEFAULT_ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'web-production-a798.up.railway.app']
+DEFAULT_ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+PRODUCTION_HOST = os.getenv('RAILWAY_STATIC_URL', 'web-production-a798.up.railway.app')
+if PRODUCTION_HOST:
+    DEFAULT_ALLOWED_HOSTS.append(PRODUCTION_HOST)
+
 allowed_hosts = os.getenv('ALLOWED_HOSTS', '').split(',')
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts if host.strip()] or DEFAULT_ALLOWED_HOSTS
 
-DEFAULT_CSRF_TRUSTED_ORIGINS = ['https://web-production-a798.up.railway.app']
+DEFAULT_CSRF_TRUSTED_ORIGINS = []
+if PRODUCTION_HOST:
+    DEFAULT_CSRF_TRUSTED_ORIGINS.append(f'https://{PRODUCTION_HOST}')
+
 csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 CSRF_TRUSTED_ORIGINS = [
     origin.strip() for origin in csrf_origins 
@@ -63,7 +78,7 @@ MIDDLEWARE = [
 
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
-    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
     INTERNAL_IPS = ['127.0.0.1']
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
     INTERNAL_IPS += [ip[:-1] + '1' for ip in ips]
@@ -96,6 +111,17 @@ DATABASES = {
     }
 }
 
+# Использование PostgreSQL в production, если заданы переменные окружения
+if os.getenv('DATABASE_URL'):
+    try:
+        import dj_database_url
+        DATABASES['default'] = dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    except ImportError:
+        logging.warning("dj-database-url package not found. Using SQLite instead.")
+
 # ==================== ОСНОВНЫЕ НАСТРОЙКИ ====================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -109,11 +135,17 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# ==================== СТАТИЧЕСКИЕ ФАЙЛЫ ====================
+# ==================== СТАТИЧЕСКИЕ ФАЙЛЫ И MEDIA ====================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Настройки WhiteNoise
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -122,6 +154,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ==================== НАСТРОЙКИ API ====================
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+if not DEEPSEEK_API_KEY and not DEBUG:
+    raise ValueError("DEEPSEEK_API_KEY must be set in production")
+
 DEEPSEEK_API_URL = os.getenv('DEEPSEEK_API_URL', 'https://api.deepseek.com/v1')
 DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
 DEEPSEEK_MAX_RETRIES = int(os.getenv('DEEPSEEK_MAX_RETRIES', 3))
@@ -137,7 +172,7 @@ AI_CONFIG = {
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer' if DEBUG else None,
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
@@ -146,14 +181,25 @@ REST_FRAMEWORK = {
         'deepseek_api': '5/minute',
     },
 }
+# Удаляем None из RENDERER_CLASSES
+REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
+    r for r in REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] if r is not None
+]
 
 # ==================== ЛОГИРОВАНИЕ ====================
+LOGGING_DIR = BASE_DIR / 'logs'
+LOGGING_DIR.mkdir(exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
             'style': '{',
         },
     },
@@ -166,8 +212,8 @@ LOGGING = {
         'file': {
             'level': 'WARNING',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs/django.log',
-            'maxBytes': 1024 * 1024 * 5,
+            'filename': LOGGING_DIR / 'django.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'verbose',
         },
@@ -176,16 +222,15 @@ LOGGING = {
         'django': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
+            'propagate': True,
         },
         'documents': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
         },
     },
 }
-
-# Создание папки для логов
-(BASE_DIR / 'logs').mkdir(exist_ok=True)
 
 # ==================== PRODUCTION SETTINGS ====================
 if not DEBUG:
@@ -198,9 +243,12 @@ if not DEBUG:
     
     # Whitenoise optimization
     WHITENOISE_MANIFEST_STRICT = False
-    WHITENOISE_MAX_AGE = 31536000
+    WHITENOISE_MAX_AGE = 31536000  # 1 year
     
-    # Установка прав только если файл существует
+    # Database permissions
     db_path = BASE_DIR / 'db.sqlite3'
     if db_path.exists():
-        db_path.chmod(0o644)
+        try:
+            db_path.chmod(0o644)
+        except PermissionError as e:
+            logging.getLogger('django').warning(f"Could not set database permissions: {e}")
