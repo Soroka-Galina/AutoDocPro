@@ -104,23 +104,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'autodocpro.wsgi.application'
 
 # ==================== НАСТРОЙКИ БАЗЫ ДАННЫХ ====================
+# Основные настройки базы данных
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('DB_NAME', BASE_DIR / 'db.sqlite3'),
+        'USER': os.getenv('DB_USER', ''),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', ''),
     }
 }
 
-# Использование PostgreSQL в production, если заданы переменные окружения
+# Альтернативная настройка через DATABASE_URL (для Railway и других платформ)
 if os.getenv('DATABASE_URL'):
     try:
         import dj_database_url
-        DATABASES['default'] = dj_database_url.config(
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+        db_from_env = dj_database_url.config(conn_max_age=600)
+        DATABASES['default'].update(db_from_env)
     except ImportError:
-        logging.warning("dj-database-url package not found. Using SQLite instead.")
+        logging.warning("dj-database-url package not found. Using standard database configuration.")
 
 # ==================== ОСНОВНЫЕ НАСТРОЙКИ ====================
 AUTH_PASSWORD_VALIDATORS = [
