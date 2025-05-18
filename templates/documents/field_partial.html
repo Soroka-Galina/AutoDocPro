@@ -1,0 +1,32 @@
+<div class="mb-3">
+    <label class="form-label">{{ field.label }}</label>
+    
+    {% if field.type == "textarea" %}
+        <textarea name="{{ field.name }}" class="form-control" 
+                  {% if field.required %}required{% endif %}></textarea>
+    
+    {% elif field.type == "object" %}
+        <div class="border p-3">
+            {% for subfield in field.fields %}
+                <div class="mb-2">
+                    <label class="form-label small">{{ subfield.label }}</label>
+                    <input type="{{ subfield.type }}" 
+                           name="{{ field.name }}.{{ subfield.name }}"
+                           class="form-control form-control-sm">
+                </div>
+            {% endfor %}
+        </div>
+    
+    {% else %}
+        <input type="{{ field.type }}" name="{{ field.name }}" 
+               class="form-control"
+               {% if field.required %}required{% endif %}>
+    {% endif %}
+    
+    {% if field.ai_help %}
+        <button type="button" class="btn btn-sm btn-outline-primary mt-2 ai-help-btn" 
+                data-field="{{ field.name }}">
+            <i class="bi bi-question-circle"></i> AI помощь
+        </button>
+    {% endif %}
+</div>

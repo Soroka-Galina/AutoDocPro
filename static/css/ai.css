@@ -1,0 +1,183 @@
+/* Основные цвета */
+:root {
+    --primary-blue: #4a89dc;
+    --secondary-blue: #5d9cec;
+    --primary-purple: #6f42c1;
+    --secondary-purple: #8a63d2;
+    --light-purple: rgba(111, 66, 193, 0.1);
+    --light-blue: rgba(74, 137, 220, 0.1);
+    --gray: #f8f9fa;
+    --dark-gray: #e9ecef;
+    --white: #ffffff;
+    --error-red: #c62828;
+}
+
+/* Общие стили для AI элементов */
+.ai-suggestions {
+    border-left: 3px solid var(--primary-purple);
+    padding: 10px 15px;
+    background-color: var(--gray);
+    border-radius: 0 5px 5px 0;
+    margin: 10px 0;
+}
+
+.message {
+    padding: 12px 15px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Сообщения чата */
+.user-message {
+    background-color: var(--light-blue);
+    border-left: 3px solid var(--primary-blue);
+    margin-left: 20%;
+    border-bottom-right-radius: 0;
+}
+
+.ai-message {
+    background-color: var(--light-purple);
+    border-left: 3px solid var(--primary-purple);
+    margin-right: 20%;
+    border-bottom-left-radius: 0;
+}
+
+.ai-error {
+    background-color: #ffebee;
+    color: var(--error-red);
+    border-left: 3px solid var(--error-red);
+}
+
+.ai-loading {
+    color: #666;
+    font-style: italic;
+}
+
+/* Стили для вложенных полей */
+.field-object {
+    background-color: var(--gray);
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid var(--dark-gray);
+}
+
+/* Подсветка кода */
+pre {
+    white-space: pre-wrap;
+    background-color: var(--gray);
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid var(--dark-gray);
+}
+
+/* Вкладки */
+.nav-tabs {
+    border-bottom: 1px solid var(--dark-gray);
+}
+
+.nav-tabs .nav-link {
+    color: #495057;
+    border: none;
+    padding: 10px 20px;
+}
+
+.nav-tabs .nav-link.active {
+    font-weight: bold;
+    color: var(--primary-purple);
+    border-bottom: 3px solid var(--primary-purple);
+    background-color: transparent;
+}
+
+/* Кнопки */
+.btn-purple {
+    background-color: var(--primary-purple);
+    color: var(--white);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-purple:hover {
+    background-color: var(--secondary-purple);
+    color: var(--white);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Цветовые классы */
+.bg-purple {
+    background-color: var(--primary-purple) !important;
+}
+
+.text-purple {
+    color: var(--primary-purple);
+}
+
+/* Анимации */
+@keyframes ai-pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.ai-pulse {
+    animation: ai-pulse 1.5s infinite;
+}
+
+/* Стили чата */
+#chat-container {
+    background-color: var(--white);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+#user-input {
+    border-radius: 20px;
+    padding: 10px 15px;
+    border: 1px solid var(--dark-gray);
+    transition: border-color 0.3s;
+}
+
+#user-input:focus {
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+#chat-history {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+#chat-history li {
+    cursor: pointer;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--dark-gray);
+    transition: all 0.2s ease;
+}
+
+#chat-history li:hover {
+    background-color: var(--light-purple);
+}
+
+#chat-history li.active {
+    background-color: var(--primary-purple);
+    color: var(--white);
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .user-message {
+        margin-left: 10%;
+    }
+    
+    .ai-message {
+        margin-right: 10%;
+    }
+    
+    #chat-history {
+        max-height: 300px;
+    }
+}
