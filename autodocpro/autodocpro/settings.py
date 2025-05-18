@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Настройки безопасности
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')  # Обязательно задайте в переменных окружения Render!
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'  # На продакшене должно быть False
-ALLOWED_HOSTS = ['autodocpro.onrender.com', 'localhost']  # Добавьте ваш домен Render
+ALLOWED_HOSTS = ['https://autodocpro.onrender.com', 'localhost']  # Добавьте ваш домен Render
 
 # Настройки приложений
 INSTALLED_APPS = [
