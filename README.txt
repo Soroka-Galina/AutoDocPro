@@ -7,7 +7,8 @@ Deploy на Render, адрес: https://autodocpro.onrender.com
 
 Так, в ходе работы на проектом возникли сложности, так изначально проект развернут на Railway.app (в презентации к проекту указан адрес: web-production-a798.up.railway.app), однако, в связи с истечением бесплатного трафика проект развернут повторно на Render, в связи, с чем актуальной является ссылка https://autodocpro.onrender.com.
 
-
+Ссылка на докдокумент, со скринами приложения на локальном хосте Django (http://127.0.0.1:8001/) 
+https://docs.google.com/document/d/1lYojN0X1eBE3nx40XtnOtWH-csTMC_icuspn9ztmgHk/edit?usp=sharing
 
 Основные возможности:
 - Генерация документов на основе шаблонов (HTML → PDF/DOCX)
