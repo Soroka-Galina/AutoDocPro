@@ -1,16 +1,16 @@
 # settings.py
 from pathlib import Path
 import os
-import socket
+import dj_database_url
 from datetime import timedelta
 
 # Базовые пути проекта
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Настройки безопасности (ЗАМЕНИТЕ в продакшене!)
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-dev-key-123')  # Используйте переменные окружения
-DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if os.getenv('DJANGO_ALLOWED_HOSTS') else []
+# Настройки безопасности
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')  # Обязательно задайте в переменных окружения Render!
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'  # На продакшене должно быть False
+ALLOWED_HOSTS = ['autodocpro.onrender.com', 'localhost']  # Добавьте ваш домен Render
 
 # Настройки приложений
 INSTALLED_APPS = [
@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Добавлено для статики на Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -37,24 +38,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-# Настройки Django Debug Toolbar
-if DEBUG:
-    INSTALLED_APPS += [
-        'debug_toolbar',
-    ]
-    
-    MIDDLEWARE += [
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    ]
-    
-    INTERNAL_IPS = [
-        '127.0.0.1',
-    ]
-    
-    # Для Docker/WSL
-    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-    INTERNAL_IPS += [ip[:-1] + '1' for ip in ips]
 
 ROOT_URLCONF = 'autodocpro.urls'
 
@@ -76,16 +59,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'autodocpro.wsgi.application'
 
-# База данных
+# База данных (используем dj-database-url для Render)
 DATABASES = {
-    'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.getenv('DB_NAME', BASE_DIR / 'db.sqlite3'),
-        'USER': os.getenv('DB_USER', ''),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'PORT': os.getenv('DB_PORT', ''),
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),  # Автоматически разбирает строку подключения Render
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 # Валидация паролей
@@ -102,10 +82,10 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# Статические файлы
+# Статические файлы (настройки для Whitenoise)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Медиа файлы
 MEDIA_URL = '/media/'
@@ -149,16 +129,18 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
 }
 
-# Настройки кэширования (рекомендуется Redis в продакшене)
+# Настройки кэширования (Redis для продакшена)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': AI_CONFIG['CACHE_TIMEOUT'],
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
     }
 }
 
-# Настройки логирования
+# Настройки логирования (используем /tmp/ для Render)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -180,18 +162,14 @@ LOGGING = {
         },
         'file': {
             'level': 'WARNING',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'django_errors.log',
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
-            'backupCount': 5,
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/django_errors.log',  # Используем /tmp/ для Render
             'formatter': 'verbose',
         },
         'deepseek_file': {
             'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'deepseek_api.log',
-            'maxBytes': 1024 * 1024 * 10,  # 10 MB
-            'backupCount': 3,
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/deepseek_api.log',  # Используем /tmp/ для Render
             'formatter': 'verbose',
         },
     },
@@ -219,7 +197,3 @@ SILENCED_SYSTEM_CHECKS = [
     "files.W002",
     "urls.W002",
 ]
-
-# Создание папки для логов
-LOG_DIR = BASE_DIR / 'logs'
-LOG_DIR.mkdir(exist_ok=True)
