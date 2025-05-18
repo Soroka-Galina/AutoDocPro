@@ -1,4 +1,4 @@
-# settings.py
+# autodocpro/autodocpro/settings.py
 from pathlib import Path
 import os
 import dj_database_url
@@ -8,11 +8,11 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Настройки безопасности
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')  # Обязательно задайте в переменных окружения Render!
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'  # На продакшене должно быть False
-ALLOWED_HOSTS = [
-    'autodocpro.onrender.com',  
-    '.onrender.com',            # Разрешает все поддомены Render
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-development-key')  # Добавлен ключ по умолчанию для разработки
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'  # По умолчанию True для разработки
+ALLOWED_HOSTS = ['*'] if DEBUG else [
+    'autodocpro.onrender.com',
+    '.onrender.com',
     'localhost',
     '127.0.0.1'
 ]
@@ -26,16 +26,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Сторонние приложения
     'rest_framework',
-    
-    # Локальные приложения
     'documents.apps.DocumentsConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Добавлено для статики на Render
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -64,10 +61,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'autodocpro.wsgi.application'
 
-# База данных (используем dj-database-url для Render)
+# Настройки базы данных
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),  # Автоматически разбирает строку подключения Render
+        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),  # SQLite по умолчанию для разработки
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -87,9 +84,10 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# Статические файлы (настройки для Whitenoise)
+# Статические файлы
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Медиа файлы
@@ -99,19 +97,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Настройки DeepSeek API
-DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')  # Обязательно через переменные окружения
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', '')
 DEEPSEEK_API_URL = os.getenv('DEEPSEEK_API_URL', 'https://api.deepseek.com/v1')
-DEEPSEEK_API_VERSION = os.getenv('DEEPSEEK_API_VERSION', 'v1')
 DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
 DEEPSEEK_MAX_RETRIES = int(os.getenv('DEEPSEEK_MAX_RETRIES', 3))
 DEEPSEEK_TIMEOUT = int(os.getenv('DEEPSEEK_TIMEOUT', 30))
 
 # Настройки ИИ
 AI_CONFIG = {
-    'CACHE_TIMEOUT': timedelta(hours=int(os.getenv('AI_CACHE_HOURS', 24))),  # 24 часа по умолчанию
+    'CACHE_TIMEOUT': timedelta(hours=int(os.getenv('AI_CACHE_HOURS', 24))),
     'MAX_TOKENS': int(os.getenv('AI_MAX_TOKENS', 4000)),
     'TEMPERATURE': float(os.getenv('AI_TEMPERATURE', 0.7)),
-    'DOCUMENT_TEMPERATURE': float(os.getenv('AI_DOCUMENT_TEMPERATURE', 0.3)),  # Более строгие настройки для документов
+    'DOCUMENT_TEMPERATURE': float(os.getenv('AI_DOCUMENT_TEMPERATURE', 0.3)),
 }
 
 # Настройки REST Framework
@@ -129,23 +126,19 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'deepseek_api': '5/minute',  # Лимит запросов к API
+        'deepseek_api': '5/minute',
     },
-    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
 }
 
-# Настройки кэширования (Redis для продакшена)
+# Настройки кэширования
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
     }
 }
 
-# Настройки логирования (используем /tmp/ для Render)
+# Настройки логирования
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -161,44 +154,24 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG' if DEBUG else 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose' if DEBUG else 'simple',
-        },
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': '/tmp/django_errors.log',  # Используем /tmp/ для Render
-            'formatter': 'verbose',
-        },
-        'deepseek_file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': '/tmp/deepseek_api.log',  # Используем /tmp/ для Render
-            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
         },
         'documents': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
-        },
-        'deepseek': {
-            'handlers': ['console', 'deepseek_file'],
-            'level': 'INFO',
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': False,
         },
     },
 }
 
 # Отключение системных проверок
-SILENCED_SYSTEM_CHECKS = [
-    "files.W002",
-    "urls.W002",
-]
+SILENCED_SYSTEM_CHECKS = ["files.W002", "urls.W002"]
