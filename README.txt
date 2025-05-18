@@ -3,6 +3,8 @@ AutoDocPro
 
 Django-приложение для автоматизированного создания юридических документов с интеграцией DeepSeek AI.
 
+Deploy на Render, адрес: https://autodocpro.onrender.com
+
 Основные возможности:
 - Генерация документов на основе шаблонов (HTML → PDF/DOCX)
 - Интеграция с DeepSeek AI для обработки текста
